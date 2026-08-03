@@ -1,0 +1,17 @@
+# Python virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & logs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+logs.txt
+training_logs.txt
+*.log
+
+# Nested git sub-repo if present
+cgcnn/.git

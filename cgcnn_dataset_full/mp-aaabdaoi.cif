@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Rb7Au5O2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.69094012
+_cell_length_b   9.34973968
+_cell_length_c   9.91814568
+_cell_angle_alpha   118.11692338
+_cell_angle_beta   106.72623960
+_cell_angle_gamma   89.97571762
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Rb7Au5O2
+_chemical_formula_sum   'Rb7 Au5 O2'
+_cell_volume   440.01287713
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Rb  Rb0  1  -0.00000000  0.50000000  0.00000000  1.0
+  Rb  Rb1  1  0.50000750  0.78930408  -0.00001570  1.0
+  Rb  Rb2  1  0.49999250  0.21069592  0.00001570  1.0
+  Rb  Rb3  1  0.16743443  0.38861433  0.33441155  1.0
+  Rb  Rb4  1  0.83256557  0.61138567  0.66558845  1.0
+  Rb  Rb5  1  0.83262394  0.05429947  0.66572880  1.0
+  Rb  Rb6  1  0.16737606  0.94570053  0.33427120  1.0
+  Au  Au7  1  -0.00000000  -0.00000000  0.00000000  1.0
+  Au  Au8  1  0.34696534  0.34689480  0.69453878  1.0
+  Au  Au9  1  0.65303466  0.65310520  0.30546122  1.0
+  Au  Au10  1  0.69344485  0.19333925  0.38622632  1.0
+  Au  Au11  1  0.30655515  0.80666075  0.61377368  1.0
+  O  O12  1  -0.00001667  0.21529889  0.00008491  1.0
+  O  O13  1  0.00001667  0.78470111  0.99991509  1.0

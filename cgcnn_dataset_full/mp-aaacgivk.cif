@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Y2Cr2C3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.39146110
+_cell_length_b   5.47979521
+_cell_length_c   5.53719892
+_cell_angle_alpha   104.73527638
+_cell_angle_beta   90.00000000
+_cell_angle_gamma   108.02617520
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Y2Cr2C3
+_chemical_formula_sum   'Y2 Cr2 C3'
+_cell_volume   94.28944064
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Y  Y0  1  0.39473392  0.78946784  0.68313931  1.0
+  Y  Y1  1  0.60526608  0.21053216  0.31686069  1.0
+  Cr  Cr2  1  0.15640864  0.31281929  0.88827654  1.0
+  Cr  Cr3  1  0.84359136  0.68718071  0.11172346  1.0
+  C  C4  1  0.71297694  0.42595288  0.77223451  1.0
+  C  C5  1  0.28702306  0.57404712  0.22776549  1.0
+  C  C6  1  -0.00000000  0.00000000  -0.00000000  1.0
