@@ -1,0 +1,173 @@
+================================================================================
+  SECTION 1: CGCNN TRAINING RESULTS
+================================================================================
+
+--- CGCNN: Bulk Modulus ---
+  Model: model_best_bulk.pth.tar
+  Best Epoch: 71
+  Test MAE: 22.340 GPa
+  Test RMSE: 34.402 GPa
+  Test R2: 0.7884
+  Dataset: 12,872 crystals (after outlier removal)
+  Split: 80% train / 10% val / 10% test
+  Hyperparameters:
+    Task: regression
+    Epochs: 100
+    Batch size: 128
+    Learning rate: 0.001
+    Train/Val/Test ratio: 0.8/0.1/0.1
+
+--- CGCNN: Shear Modulus ---
+  Model: model_best_shear.pth.tar
+  Best Epoch: 48
+  Test MAE: 10.789 GPa
+  Test RMSE: 17.234 GPa
+  Test R2: 0.8296
+  Dataset: 12,617 crystals (after outlier removal)
+  Split: 80% train / 10% val / 10% test
+  Hyperparameters:
+    Task: regression
+    Epochs: 100
+    Batch size: 128
+    Learning rate: 0.001
+    Train/Val/Test ratio: 0.8/0.1/0.1
+
+
+================================================================================
+  SECTION 2: LINEAR REGRESSION & RANDOM FOREST TRAINING LOG
+================================================================================
+
+============================================================
+  BASELINE MODEL TRAINING: Linear Regression & Random Forest
+============================================================
+
+[1/5] Loading target data...
+  Bulk entries: 13081
+  Shear entries: 13081
+
+[2/5] Filtering missing CIFs and outliers...
+  Bulk:
+  Filtered 53 entries with missing CIF files.
+  Removed 156 outliers outside [-264.8, 454.9].
+  Shear:
+  Filtered 53 entries with missing CIF files.
+  Removed 411 outliers outside [-130.3, 211.4].
+
+  Total unique structures: 12899
+
+[3/5] Feature extraction...
+Extracting features from 12899 CIF files...
+  This may take 30-60 minutes for 13k structures. Progress shown below.
+  [1/12899] 0.0 structs/sec, ETA: 0.0 min
+  [500/12899] 49.6 structs/sec, ETA: 4.2 min
+  [1000/12899] 47.3 structs/sec, ETA: 4.2 min
+  [1500/12899] 47.9 structs/sec, ETA: 4.0 min
+  [2000/12899] 48.0 structs/sec, ETA: 3.8 min
+  [2500/12899] 47.5 structs/sec, ETA: 3.6 min
+  [3000/12899] 47.4 structs/sec, ETA: 3.5 min
+  [3500/12899] 47.5 structs/sec, ETA: 3.3 min
+  [4000/12899] 47.3 structs/sec, ETA: 3.1 min
+  [4500/12899] 47.2 structs/sec, ETA: 3.0 min
+  [5000/12899] 46.8 structs/sec, ETA: 2.8 min
+  [5500/12899] 46.5 structs/sec, ETA: 2.7 min
+  [6000/12899] 46.2 structs/sec, ETA: 2.5 min
+  [6500/12899] 45.9 structs/sec, ETA: 2.3 min
+  [7000/12899] 45.7 structs/sec, ETA: 2.2 min
+  [7500/12899] 45.6 structs/sec, ETA: 2.0 min
+  [8000/12899] 45.5 structs/sec, ETA: 1.8 min
+  [8500/12899] 45.3 structs/sec, ETA: 1.6 min
+  [9000/12899] 45.4 structs/sec, ETA: 1.4 min
+  [9500/12899] 45.4 structs/sec, ETA: 1.2 min
+  [10000/12899] 45.6 structs/sec, ETA: 1.1 min
+  [10500/12899] 45.6 structs/sec, ETA: 0.9 min
+  [11000/12899] 45.7 structs/sec, ETA: 0.7 min
+  [11500/12899] 45.8 structs/sec, ETA: 0.5 min
+  [12000/12899] 45.7 structs/sec, ETA: 0.3 min
+  [12500/12899] 45.6 structs/sec, ETA: 0.1 min
+  Done in 4.7 min. Extracted: 12899, Failed: 0
+  Saving cache to features_cache.csv...
+  Feature matrix shape: (12899, 49)
+  Features (49): ['X_max', 'X_mean', 'X_min', 'X_range', 'X_std']... ['row_range', 'row_std', 'row_wmean', 'volume', 'volume_per_atom']
+
+============================================================
+  TARGET: Bulk Modulus
+============================================================
+  Samples: 12872, Features: 49
+  Target range: [-264.61, 448.87], mean: 101.81
+
+[4/5] Splitting data (80/10/10)...
+  Train: 10297, Val: 1287, Test: 1288
+
+  --- Linear Regression ---
+    Training Linear Regression...
+    Training done in 0.3s
+    Train MAE: 28.086 GPa
+    Test  MAE: 27.976 GPa | RMSE: 42.600 GPa | R2: 0.6802
+    Predictions saved to predictions_lr_bulk.csv
+
+  --- Random Forest ---
+    Training Random Forest...
+    Training done in 4.2s
+    Train MAE: 5.737 GPa
+    Test  MAE: 13.208 GPa | RMSE: 27.603 GPa | R2: 0.8657
+    Predictions saved to predictions_rf_bulk.csv
+    Top 10 features:
+      volume_per_atom                 0.5269
+      density                         0.1054
+      mendeleev_no_min                0.0814
+      group_min                       0.0404
+      row_wmean                       0.0283
+      mendeleev_no_max                0.0178
+      atomic_radius_wmean             0.0175
+      mendeleev_no_wmean              0.0167
+      group_wmean                     0.0165
+      atomic_mass_max                 0.0132
+
+============================================================
+  TARGET: Shear Modulus
+============================================================
+  Samples: 12617, Features: 49
+  Target range: [-129.69, 211.08], mean: 43.35
+
+[4/5] Splitting data (80/10/10)...
+  Train: 10093, Val: 1261, Test: 1263
+
+  --- Linear Regression ---
+    Training Linear Regression...
+    Training done in 0.2s
+    Train MAE: 21.972 GPa
+    Test  MAE: 21.896 GPa | RMSE: 31.651 GPa | R2: 0.3909
+    Predictions saved to predictions_lr_shear.csv
+
+  --- Random Forest ---
+    Training Random Forest...
+    Training done in 4.8s
+    Train MAE: 6.289 GPa
+    Test  MAE: 13.423 GPa | RMSE: 22.546 GPa | R2: 0.6909
+    Predictions saved to predictions_rf_shear.csv
+    Top 10 features:
+      volume_per_atom                 0.3896
+      density                         0.0453
+      mendeleev_no_min                0.0385
+      atomic_radius_min               0.0312
+      mendeleev_no_max                0.0309
+      atomic_radius_wmean             0.0272
+      lattice_c                       0.0245
+      X_wmean                         0.0231
+      volume                          0.0227
+      atomic_mass_min                 0.0213
+
+
+================================================================================
+  SECTION 3: FINAL MODEL COMPARISON
+================================================================================
+
+Model                  Target            MAE (GPa)  RMSE (GPa)       R2   Train Time
+------------------------------------------------------------------------------------
+CGCNN                  Bulk Modulus         22.340      34.402   0.7884         ~1hr
+Linear Regression      Bulk Modulus         27.976      42.600   0.6802         0.3s
+Random Forest          Bulk Modulus         13.208      27.603   0.8657         4.2s
+
+CGCNN                  Shear Modulus        10.789      17.234   0.8296         ~1hr
+Linear Regression      Shear Modulus        21.896      31.651   0.3909         0.2s
+Random Forest          Shear Modulus        13.423      22.546   0.6909         4.8s
