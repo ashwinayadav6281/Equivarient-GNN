@@ -1,0 +1,37 @@
+Bulk Modulus 
+---------Evaluate Model on Test Set---------------
+Test: [0/11]    Time 2.017 (2.017)      Loss 0.0423 (0.0423)    MAE 10.609 (10.609)
+Test: [10/11]   Time 0.065 (1.555)      Loss 0.0145 (0.1331)    MAE 7.726 (12.561)
+ ** MAE 12.561
+
+
+Shear Modulus
+ ---------Evaluate Model on Test Set---------------
+Test: [0/10]    Time 0.700 (0.700)      Loss 0.3835 (0.3835)    MAE 15.367 (15.367)
+ ** MAE 14.108
+
+
+-----------------------Predictions-----------------------------
+
+ Saved: predictions_bulk.csv
+  Total predictions: 12872
+  MAE: 22.340 GPa
+
+
+ Saved: predictions_shear.csv
+  Total predictions: 12617
+  MAE: 10.789 GPa
+
+
+Combined results saved to: predictions_combined.csv
+Total entries: 12899
+
+=======================================================
+  ALL PREDICTIONS COMPLETE!
+=======================================================
+
+Output files:
+  - predictions_bulk.csv
+  - predictions_shear.csv
+  - predictions_combined.csv
+
