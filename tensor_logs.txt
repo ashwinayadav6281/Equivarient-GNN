@@ -1,0 +1,41 @@
+n_equivariant.py
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 4 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 16 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 2 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 12 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 8 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+C:\Users\arvin\AppData\Local\Programs\Python\Python39\lib\site-packages\pymatgen\io\cif.py:1287: UserWarning: Issues encountered while parsing CIF: 1 fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+Loaded dataset with 489 valid structures (filtered 11 outliers).
+Training on cpu
+Calculating training data statistics...
+Epoch 1/10 - Train Loss: 225302662.1351 | Val Loss: 35104.1451
+Epoch 2/10 - Train Loss: 4270.4112 | Val Loss: 1106.8336
+Epoch 3/10 - Train Loss: 258.0790 | Val Loss: 63.6666
+Epoch 4/10 - Train Loss: 16.3042 | Val Loss: 30.7380
+Epoch 5/10 - Train Loss: 4.2053 | Val Loss: 2.9997
+Epoch 6/10 - Train Loss: 4.9287 | Val Loss: 12.0516
+Epoch 7/10 - Train Loss: 6.8023 | Val Loss: 4.9191
+Epoch 8/10 - Train Loss: 7.9748 | Val Loss: 9.0467
+Epoch 9/10 - Train Loss: 3.9897 | Val Loss: 4.4988
+Epoch 10/10 - Train Loss: 2.0607 | Val Loss: 5.4712
+Training complete. Evaluating some samples...
+
+--- Material: mp-aaaaaaje ---
+TRUE: Bulk=131.7, Shear=42.0, Stable=True
+PRED: Bulk=118.8, Shear=51.4, Stable=True
+
+--- Material: mp-aaaaabfl ---
+TRUE: Bulk=46.0, Shear=17.3, Stable=True
+PRED: Bulk=59.1, Shear=31.6, Stable=True
+Tensor MSE: 178.9631
+
+--- Material: mp-aaaaaaim ---
+TRUE: Bulk=126.9, Shear=4.6, Stable=False
+PRED: Bulk=131.3, Shear=62.7, Stable=True
+Tensor MSE: 749.2072
