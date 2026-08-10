@@ -15,3 +15,8 @@ training_logs.txt
 
 # Nested git sub-repo if present
 cgcnn/.git
+
+# Datasets
+dataset_equivariant/
+cgcnn_dataset_full/
+mp_latest_elasticity.csv

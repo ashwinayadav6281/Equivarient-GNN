@@ -7,7 +7,7 @@ DATA_DIR = "cgcnn_dataset_full"
 
 def run_training(target_name):
     print(f"\n{'='*50}")
-    print(f"🚀 STARTING TRAINING: {target_name.upper()} MODULUS")
+    print(f"STARTING TRAINING: {target_name.upper()} MODULUS")
     print(f"{'='*50}")
 
     # 1. Copy the correct file to become 'id_prop.csv'
@@ -37,7 +37,7 @@ def run_training(target_name):
     if os.path.exists("checkpoint.pth.tar"):
         os.replace("checkpoint.pth.tar", f"checkpoint_{target_name}.pth.tar")
 
-    print(f"✅ FINISHED TRAINING: {target_name.upper()} MODULUS\n")
+    print(f"FINISHED TRAINING: {target_name.upper()} MODULUS\n")
 
 if __name__ == "__main__":
     # 1. Train the Bulk Modulus model first
@@ -51,4 +51,4 @@ if __name__ == "__main__":
     if os.path.exists(active_csv_path):
         os.remove(active_csv_path)
         
-    print("🎉 ALL TRAINING COMPLETE!")
+    print("ALL TRAINING COMPLETE!")
