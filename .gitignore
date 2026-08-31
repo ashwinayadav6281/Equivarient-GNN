@@ -16,7 +16,21 @@ training_logs.txt
 # Nested git sub-repo if present
 cgcnn/.git
 
-# Datasets
+# Large binary datasets (too big for GitHub)
 dataset_equivariant/
 cgcnn_dataset_full/
 mp_latest_elasticity.csv
+
+# Large binary files
+*.pth.tar
+linux_wheels/
+*.tar.gz
+*.zip
+
+# JARVIS raw data (too large)
+jarvis_data/jdft_3d-*.json
+jarvis_data/jdft_3d-*.json.zip
+
+# CSV predictions (can be regenerated)
+predictions_*.csv
+features_cache.csv

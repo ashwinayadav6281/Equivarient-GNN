@@ -4,25 +4,14 @@ from e3nn import o3
 from e3nn.nn import FullyConnectedNet, Gate
 from e3nn.math import soft_one_hot_linspace
 
-class ImprovedEquivariantElasticNet(nn.Module):
-    """Lean equivariant GNN for elastic tensor prediction.
-    
-    Key improvements over the raw-distance model:
-    - Gaussian radial basis (10 features) for distance encoding
-    - Epsilon for NaN prevention on edge distances
-    
-    Kept lean for CPU training:
-    - 3 message-passing layers
-    - 32x0e + 16x1o + 8x2e hidden irreps
-    - Compact readout MLP
-    """
+class FastImprovedEquivariantElasticNet(nn.Module):
     def __init__(self, num_node_features=100, max_radius=5.0):
         super().__init__()
         self.max_radius = max_radius
-        self.num_radial_basis = 10
         
         self.atom_embedding = nn.Linear(num_node_features, 32)
         self.irreps_node_input = o3.Irreps("32x0e")
+        self.irreps_node_hidden = o3.Irreps("32x0e + 16x1o + 8x2e")
         self.irreps_sh = o3.Irreps.spherical_harmonics(lmax=2)
         
         self.num_layers = 3
@@ -33,7 +22,7 @@ class ImprovedEquivariantElasticNet(nn.Module):
         
         irreps_scalars = o3.Irreps("32x0e")
         act_scalars = [torch.nn.functional.silu]
-        irreps_gates = o3.Irreps("24x0e")
+        irreps_gates = o3.Irreps("24x0e") 
         act_gates = [torch.sigmoid]
         irreps_non_scalars = o3.Irreps("16x1o + 8x2e")
         gate = Gate(irreps_scalars, act_scalars, irreps_gates, act_gates, irreps_non_scalars)
@@ -42,39 +31,37 @@ class ImprovedEquivariantElasticNet(nn.Module):
         current_irreps = self.irreps_node_input
         
         for i in range(self.num_layers):
-            tp = o3.FullyConnectedTensorProduct(
-                current_irreps, self.irreps_sh, irreps_pre_gate, shared_weights=False
-            )
+            tp = o3.FullyConnectedTensorProduct(current_irreps, self.irreps_sh, irreps_pre_gate, shared_weights=False)
             self.tps.append(tp)
-            self.fcs.append(FullyConnectedNet(
-                [self.num_radial_basis, 32, tp.weight_numel], 
-                act=torch.nn.functional.silu
-            ))
+            # Using soft one-hot linspace as a radial basis function (size 20)
+            self.fcs.append(FullyConnectedNet([20, 32, tp.weight_numel], act=torch.nn.functional.silu))
             self.self_connections.append(o3.Linear(current_irreps, irreps_pre_gate))
             self.gates.append(gate)
             current_irreps = gate.irreps_out
-        
-        # Readout: 32 + 16*3 + 8*5 = 32 + 48 + 40 = 120
-        feat_dim = 32 + 16*3 + 8*5
+            
         self.readout_mlp = nn.Sequential(
-            nn.Linear(feat_dim, 128),
+            nn.Linear(32 + 16*3 + 8*5, 64),
             nn.SiLU(),
-            nn.Linear(128, 64),
+            nn.Linear(64, 32),
             nn.SiLU(),
-            nn.Linear(64, 21)
+            nn.Linear(32, 21)
         )
         
     def forward(self, node_features, edge_vec, edge_index):
         src, dst = edge_index
         current_node_features = self.atom_embedding(node_features)
         
-        # Epsilon to prevent NaN
+        # Add epsilon to prevent NaN in backprop and sh normalization
         edge_dist = edge_vec.norm(dim=1, keepdim=True) + 1e-8
         
-        # Gaussian radial basis
+        # Radial basis encoding
         radial_basis = soft_one_hot_linspace(
-            edge_dist.squeeze(-1), start=0.0, end=self.max_radius,
-            number=self.num_radial_basis, basis='smooth_finite', cutoff=True
+            edge_dist.squeeze(-1), 
+            start=0.0, 
+            end=self.max_radius, 
+            number=20, 
+            basis='gaussian', 
+            cutoff=True
         )
         
         sh = o3.spherical_harmonics(self.irreps_sh, edge_vec, normalize=True, normalization='component')
@@ -83,10 +70,7 @@ class ImprovedEquivariantElasticNet(nn.Module):
             weight = self.fcs[i](radial_basis)
             messages = self.tps[i](current_node_features[src], sh, weight)
             
-            node_hidden = torch.zeros(
-                current_node_features.shape[0], messages.shape[1], 
-                device=current_node_features.device
-            )
+            node_hidden = torch.zeros(current_node_features.shape[0], messages.shape[1], device=current_node_features.device)
             node_hidden.index_add_(0, dst, messages)
             
             self_out = self.self_connections[i](current_node_features)
@@ -105,14 +89,4 @@ class ImprovedEquivariantElasticNet(nn.Module):
                 idx += 1
         return C
 
-SimpleEquivariantElasticNet = ImprovedEquivariantElasticNet
-
-if __name__ == "__main__":
-    model = ImprovedEquivariantElasticNet(num_node_features=100)
-    params = sum(p.numel() for p in model.parameters())
-    print(f"Lean model: {params:,} parameters")
-    nodes = torch.randn(4, 100)
-    edge_vec = torch.randn(6, 3)
-    edge_index = torch.tensor([[0, 0, 1, 2, 2, 3], [1, 2, 2, 3, 0, 1]])
-    C = model(nodes, edge_vec, edge_index)
-    print("Output shape:", C.shape)
+SimpleEquivariantElasticNet = FastImprovedEquivariantElasticNet

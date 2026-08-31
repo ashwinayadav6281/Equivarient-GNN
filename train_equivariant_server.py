@@ -32,7 +32,7 @@ from tensor_utils import calculate_moduli, check_stability
 def parse_args():
     parser = argparse.ArgumentParser(description="Train equivariant elastic tensor model")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs (default: 100)")
-    parser.add_argument("--lr", type=float, default=0.005, help="Learning rate (default: 0.005)")
+    parser.add_argument("--lr", type=float, default=0.0002, help="Learning rate (default: 0.0002)")
     parser.add_argument("--batch-size", type=int, default=1, help="Batch size (default: 1, graph data)")
     parser.add_argument("--train-ratio", type=float, default=0.8, help="Train split ratio (default: 0.8)")
     parser.add_argument("--data-dir", type=str, default="dataset_equivariant", help="Dataset directory")
@@ -80,9 +80,9 @@ def train(args):
 
     # ── Model ──
     model = SimpleEquivariantElasticNet(num_node_features=100).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=10, verbose=True
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=10, T_mult=2, eta_min=1e-6
     )
 
     start_epoch = 0
@@ -117,30 +117,69 @@ def train(args):
     log(f"Starting training for {args.epochs} epochs...\n")
 
     # ── Training loop ──
+    accum_steps = 4  # Gradient accumulation for effective batch size = 4
     for epoch in range(start_epoch, args.epochs):
         epoch_start = time.time()
         model.train()
         total_loss = 0.0
         num_batches = 0
+        optimizer.zero_grad()
 
-        for batch in train_loader:
+        for batch_idx, batch in enumerate(train_loader):
             node_features = batch["node_features"][0].to(device)
-            pos = batch["pos"][0].to(device)
+            edge_vec = batch["edge_vec"][0].to(device)
             edge_index = batch["edge_index"][0].to(device)
             target_tensor = batch["target_tensor"][0].to(device)
+
+            if target_tensor.shape != (6, 6):
+                continue
 
             # Standardize target
             standardized_target = (target_tensor - target_mean) / target_std
 
-            optimizer.zero_grad()
-            pred_C = model(node_features, pos, edge_index)
-            loss = F.mse_loss(pred_C, standardized_target)
+            pred_C = model(node_features, edge_vec, edge_index)
+            
+            # Component-aware L1 loss: non-zero off-diag gets 3x weight
+            nonzero_mask = (target_tensor != 0.0).float()
+            zero_mask = (target_tensor == 0.0).float()
+            
+            # Base L1 loss on all components
+            base_loss = F.l1_loss(pred_C, standardized_target)
+            
+            # Extra weight for non-zero off-diagonal components (rare but important)
+            offdiag_mask = torch.ones(6, 6, device=device)
+            for k in range(6):
+                offdiag_mask[k, k] = 0.0  # exclude diagonal
+            nonzero_offdiag = nonzero_mask * offdiag_mask
+            if nonzero_offdiag.sum() > 0:
+                offdiag_boost = F.l1_loss(
+                    pred_C * nonzero_offdiag, 
+                    standardized_target * nonzero_offdiag
+                )
+                base_loss = base_loss + 3.0 * offdiag_boost
+            
+            # Reduced symmetry penalty (1.5x instead of 5x)
+            if zero_mask.sum() > 0:
+                standardized_zeros = (0.0 - target_mean) / target_std
+                symmetry_penalty = F.l1_loss(pred_C * zero_mask, standardized_zeros * zero_mask)
+                base_loss = base_loss + 1.5 * symmetry_penalty
+            
+            loss = base_loss / accum_steps
             loss.backward()
+            
+            if (batch_idx + 1) % accum_steps == 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                optimizer.zero_grad()
+
+            total_loss += base_loss.item()
+            num_batches += 1
+        
+        # Handle remaining gradients
+        if num_batches % accum_steps != 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
-
-            total_loss += loss.item()
-            num_batches += 1
+            optimizer.zero_grad()
 
         avg_train_loss = total_loss / max(num_batches, 1)
 
@@ -152,20 +191,46 @@ def train(args):
         with torch.no_grad():
             for batch in val_loader:
                 node_features = batch["node_features"][0].to(device)
-                pos = batch["pos"][0].to(device)
+                edge_vec = batch["edge_vec"][0].to(device)
                 edge_index = batch["edge_index"][0].to(device)
                 target_tensor = batch["target_tensor"][0].to(device)
 
+                if target_tensor.shape != (6, 6):
+                    continue
+
                 standardized_target = (target_tensor - target_mean) / target_std
-                pred_C = model(node_features, pos, edge_index)
-                loss = F.mse_loss(pred_C, standardized_target)
-                val_loss += loss.item()
+                pred_C = model(node_features, edge_vec, edge_index)
+                
+                # Same component-aware loss as training
+                nonzero_mask = (target_tensor != 0.0).float()
+                zero_mask = (target_tensor == 0.0).float()
+                
+                base_loss = F.l1_loss(pred_C, standardized_target)
+                
+                offdiag_mask = torch.ones(6, 6, device=device)
+                for k in range(6):
+                    offdiag_mask[k, k] = 0.0
+                nonzero_offdiag = nonzero_mask * offdiag_mask
+                if nonzero_offdiag.sum() > 0:
+                    offdiag_boost = F.l1_loss(
+                        pred_C * nonzero_offdiag,
+                        standardized_target * nonzero_offdiag
+                    )
+                    base_loss = base_loss + 3.0 * offdiag_boost
+                
+                if zero_mask.sum() > 0:
+                    standardized_zeros = (0.0 - target_mean) / target_std
+                    symmetry_penalty = F.l1_loss(pred_C * zero_mask, standardized_zeros * zero_mask)
+                    base_loss = base_loss + 1.5 * symmetry_penalty
+                    
+                val_loss += base_loss.item()
                 val_batches += 1
 
         avg_val_loss = val_loss / max(val_batches, 1)
         elapsed = time.time() - epoch_start
 
-        scheduler.step(avg_val_loss)
+        # CosineAnnealingWarmRestarts steps per epoch
+        scheduler.step(epoch + 1)
         current_lr = optimizer.param_groups[0]["lr"]
 
         log(
@@ -215,11 +280,11 @@ def evaluate(model, val_loader, device, target_mean, target_std, log):
 
             mat_id = batch["mat_id"][0]
             node_features = batch["node_features"][0].to(device)
-            pos = batch["pos"][0].to(device)
+            edge_vec = batch["edge_vec"][0].to(device)
             edge_index = batch["edge_index"][0].to(device)
             target_tensor = batch["target_tensor"][0].cpu().numpy()
 
-            pred_standard = model(node_features, pos, edge_index).cpu().numpy()
+            pred_standard = model(node_features, edge_vec, edge_index).cpu().numpy()
             pred_C = pred_standard * target_std_np + target_mean_np
 
             true_moduli = calculate_moduli(target_tensor)

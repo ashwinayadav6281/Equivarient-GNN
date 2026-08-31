@@ -1,0 +1,6 @@
+Device: cpu
+Dataset size: 46913
+Train: 37530 | Val: 9383
+Computing target statistics...
+Model parameters: 424,437
+Starting training for 100 epochs...
