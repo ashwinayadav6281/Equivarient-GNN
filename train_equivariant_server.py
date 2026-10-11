@@ -79,7 +79,7 @@ def train(args):
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
 
     # ── Model ──
-    model = SimpleEquivariantElasticNet(num_node_features=100).to(device)
+    model = SimpleEquivariantElasticNet(num_node_features=105).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
         optimizer, T_0=10, T_mult=2, eta_min=1e-6
@@ -158,11 +158,13 @@ def train(args):
                 )
                 base_loss = base_loss + 3.0 * offdiag_boost
             
-            # Reduced symmetry penalty (1.5x instead of 5x)
+            # Reduced symmetry penalty (dynamic ramping: max 1.5x)
+            # Ramps up linearly over the first 15 epochs to stabilize early training
+            sym_weight = 1.5 * min(1.0, epoch / 15.0)
             if zero_mask.sum() > 0:
                 standardized_zeros = (0.0 - target_mean) / target_std
                 symmetry_penalty = F.l1_loss(pred_C * zero_mask, standardized_zeros * zero_mask)
-                base_loss = base_loss + 1.5 * symmetry_penalty
+                base_loss = base_loss + sym_weight * symmetry_penalty
             
             loss = base_loss / accum_steps
             loss.backward()

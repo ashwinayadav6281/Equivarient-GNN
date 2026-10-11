@@ -34,3 +34,6 @@ jarvis_data/jdft_3d-*.json.zip
 # CSV predictions (can be regenerated)
 predictions_*.csv
 features_cache.csv
+
+# GNoME dataset (large raw download)
+gnome_data/

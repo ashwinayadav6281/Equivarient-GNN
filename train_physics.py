@@ -1,0 +1,342 @@
+"""
+Server-optimized equivariant model training.
+Trains on ALL ~13,000 elastic tensors with GPU acceleration.
+
+Changes from the local version (train_equivariant.py):
+  - More epochs (100 instead of 10)
+  - DataLoader workers (4 instead of 0)
+  - Checkpointing (saves best model)
+  - Logging to file
+  - GPU auto-detected
+  - Better learning rate schedule
+
+Usage:
+    python train_equivariant_server.py
+    python train_equivariant_server.py --epochs 200
+"""
+import os
+import sys
+import time
+import argparse
+import torch
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader
+import numpy as np
+
+from equivariant_dataset import EquivariantTensorDataset
+from equivariant_model import SimpleEquivariantElasticNet
+from tensor_utils import calculate_moduli, check_stability
+
+def differentiable_vrh(C_tensor):
+    C = (C_tensor + C_tensor.T) / 2.0
+    K_V = (C[0,0] + C[1,1] + C[2,2] + 2*(C[0,1] + C[0,2] + C[1,2])) / 9.0
+    G_V = (C[0,0] + C[1,1] + C[2,2] - (C[0,1] + C[0,2] + C[1,2]) + 3*(C[3,3] + C[4,4] + C[5,5])) / 15.0
+    jitter = torch.eye(6, device=C.device) * 1e-2
+    try:
+        S = torch.linalg.inv(C + jitter)
+        K_R_denom = (S[0,0] + S[1,1] + S[2,2] + 2*(S[0,1] + S[0,2] + S[1,2]))
+        G_R_denom = 4*(S[0,0] + S[1,1] + S[2,2]) - 4*(S[0,1] + S[0,2] + S[1,2]) + 3*(S[3,3] + S[4,4] + S[5,5])
+        K_R = 1.0 / (K_R_denom + 1e-8)
+        G_R = 15.0 / (G_R_denom + 1e-8)
+        return (K_V + K_R) / 2.0, (G_V + G_R) / 2.0
+    except:
+        return K_V, G_V
+
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train equivariant elastic tensor model")
+    parser.add_argument("--epochs", type=int, default=100, help="Number of epochs (default: 100)")
+    parser.add_argument("--lr", type=float, default=0.0002, help="Learning rate (default: 0.0002)")
+    parser.add_argument("--batch-size", type=int, default=1, help="Batch size (default: 1, graph data)")
+    parser.add_argument("--train-ratio", type=float, default=0.8, help="Train split ratio (default: 0.8)")
+    parser.add_argument("--data-dir", type=str, default="dataset_equivariant", help="Dataset directory")
+    parser.add_argument("--save-dir", type=str, default="checkpoints_equivariant", help="Checkpoint directory")
+    parser.add_argument("--resume", type=str, default="", help="Path to checkpoint to resume from")
+    return parser.parse_args()
+
+
+def train(args):
+    # â”€â”€ Setup â”€â”€
+    os.makedirs(args.save_dir, exist_ok=True)
+    log_file = open(os.path.join(args.save_dir, "training_log.txt"), "a")
+
+    def log(msg):
+        print(msg)
+        log_file.write(msg + "\n")
+        log_file.flush()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    log(f"Device: {device}")
+    if torch.cuda.is_available():
+        log(f"GPU: {torch.cuda.get_device_name(0)}")
+
+    # â”€â”€ Load dataset â”€â”€
+    dataset = EquivariantTensorDataset(data_dir=args.data_dir)
+
+    if len(dataset) == 0:
+        log("Dataset is empty! Run fetch_elastic_tensors_full.py first.")
+        return
+
+    log(f"Dataset size: {len(dataset)}")
+
+    # Split train/val
+    train_size = int(args.train_ratio * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(
+        dataset, [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)
+    )
+    log(f"Train: {train_size} | Val: {val_size}")
+
+    # batch_size=1 because graphs have variable sizes
+    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
+
+    # â”€â”€ Model â”€â”€
+    model = SimpleEquivariantElasticNet(num_node_features=105).to(device)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=10, T_mult=2, eta_min=1e-6
+    )
+
+    start_epoch = 0
+    best_val_loss = float("inf")
+
+    # â”€â”€ Resume from checkpoint â”€â”€
+    if args.resume and os.path.isfile(args.resume):
+        log(f"Resuming from {args.resume}")
+        ckpt = torch.load(args.resume, map_location=device)
+        model.load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_epoch = ckpt["epoch"]
+        best_val_loss = ckpt.get("best_val_loss", float("inf"))
+        log(f"Resumed at epoch {start_epoch}, best val loss: {best_val_loss:.6f}")
+
+    # â”€â”€ Compute target statistics for Z-score normalization â”€â”€
+    log("Computing target statistics...")
+    all_targets = []
+    for batch in train_loader:
+        all_targets.append(batch["target_tensor"][0].flatten())
+    all_targets = torch.stack(all_targets)
+    target_mean = all_targets.mean(dim=0).to(device).view(6, 6)
+    target_std = all_targets.std(dim=0).to(device).view(6, 6)
+    target_std[target_std < 1e-4] = 1.0
+
+    # Save normalization stats
+    torch.save({"mean": target_mean, "std": target_std},
+               os.path.join(args.save_dir, "normalization_stats.pt"))
+
+    param_count = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    log(f"Model parameters: {param_count:,}")
+    log(f"Starting training for {args.epochs} epochs...\n")
+
+    # â”€â”€ Training loop â”€â”€
+    accum_steps = 4  # Gradient accumulation for effective batch size = 4
+    for epoch in range(start_epoch, args.epochs):
+        epoch_start = time.time()
+        model.train()
+        total_loss = 0.0
+        num_batches = 0
+        optimizer.zero_grad()
+
+        for batch_idx, batch in enumerate(train_loader):
+            node_features = batch["node_features"][0].to(device)
+            edge_vec = batch["edge_vec"][0].to(device)
+            edge_index = batch["edge_index"][0].to(device)
+            target_tensor = batch["target_tensor"][0].to(device)
+
+            if target_tensor.shape != (6, 6):
+                continue
+
+            # Standardize target
+            standardized_target = (target_tensor - target_mean) / target_std
+
+            pred_C = model(node_features, edge_vec, edge_index)
+            
+            # Component-aware L1 loss: non-zero off-diag gets 3x weight
+            nonzero_mask = (target_tensor != 0.0).float()
+            zero_mask = (target_tensor == 0.0).float()
+            
+            # Base L1 loss on all components
+            base_loss = F.l1_loss(pred_C, standardized_target)
+            
+            # Extra weight for non-zero off-diagonal components (rare but important)
+            offdiag_mask = torch.ones(6, 6, device=device)
+            for k in range(6):
+                offdiag_mask[k, k] = 0.0  # exclude diagonal
+            nonzero_offdiag = nonzero_mask * offdiag_mask
+            if nonzero_offdiag.sum() > 0:
+                offdiag_boost = F.l1_loss(
+                    pred_C * nonzero_offdiag, 
+                    standardized_target * nonzero_offdiag
+                )
+                base_loss = base_loss + 3.0 * offdiag_boost
+            
+            # Reduced symmetry penalty (dynamic ramping: max 1.5x)
+            # Ramps up linearly over the first 15 epochs to stabilize early training
+            sym_weight = 1.5 * min(1.0, epoch / 15.0)
+            if zero_mask.sum() > 0:
+                standardized_zeros = (0.0 - target_mean) / target_std
+                symmetry_penalty = F.l1_loss(pred_C * zero_mask, standardized_zeros * zero_mask)
+                base_loss = base_loss + sym_weight * symmetry_penalty
+            
+            # --- PHYSICS-INFORMED LOSS ---
+            # Unstandardize predictions and targets for physical bounds
+            phys_pred_C = pred_C * target_std + target_mean
+            phys_target_C = target_tensor
+            
+            # Calculate VRH for true and pred
+            pred_K, pred_G = differentiable_vrh(phys_pred_C)
+            true_K, true_G = differentiable_vrh(phys_target_C)
+            
+            # Penalize physics deviation (only if values are reasonable to avoid exploding gradients)
+            if not (torch.isnan(pred_K) or torch.isnan(pred_G) or pred_G > 2000 or pred_K > 2000):
+                phys_loss = F.l1_loss(pred_K, true_K) + F.l1_loss(pred_G, true_G)
+                # Scale physical loss so it's comparable to standardized loss (typical moduli ~ 50, std ~ 1)
+                base_loss = base_loss + 0.005 * phys_loss
+            
+            loss = base_loss / accum_steps
+            loss.backward()
+            
+            if (batch_idx + 1) % accum_steps == 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                optimizer.zero_grad()
+
+            total_loss += base_loss.item()
+            num_batches += 1
+        
+        # Handle remaining gradients
+        if num_batches % accum_steps != 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            optimizer.zero_grad()
+
+        avg_train_loss = total_loss / max(num_batches, 1)
+
+        # â”€â”€ Validation â”€â”€
+        model.eval()
+        val_loss = 0.0
+        val_batches = 0
+
+        with torch.no_grad():
+            for batch in val_loader:
+                node_features = batch["node_features"][0].to(device)
+                edge_vec = batch["edge_vec"][0].to(device)
+                edge_index = batch["edge_index"][0].to(device)
+                target_tensor = batch["target_tensor"][0].to(device)
+
+                if target_tensor.shape != (6, 6):
+                    continue
+
+                standardized_target = (target_tensor - target_mean) / target_std
+                pred_C = model(node_features, edge_vec, edge_index)
+                
+                # Same component-aware loss as training
+                nonzero_mask = (target_tensor != 0.0).float()
+                zero_mask = (target_tensor == 0.0).float()
+                
+                base_loss = F.l1_loss(pred_C, standardized_target)
+                
+                offdiag_mask = torch.ones(6, 6, device=device)
+                for k in range(6):
+                    offdiag_mask[k, k] = 0.0
+                nonzero_offdiag = nonzero_mask * offdiag_mask
+                if nonzero_offdiag.sum() > 0:
+                    offdiag_boost = F.l1_loss(
+                        pred_C * nonzero_offdiag,
+                        standardized_target * nonzero_offdiag
+                    )
+                    base_loss = base_loss + 3.0 * offdiag_boost
+                
+                if zero_mask.sum() > 0:
+                    standardized_zeros = (0.0 - target_mean) / target_std
+                    symmetry_penalty = F.l1_loss(pred_C * zero_mask, standardized_zeros * zero_mask)
+                    base_loss = base_loss + 1.5 * symmetry_penalty
+                    
+                phys_pred_C = pred_C * target_std + target_mean
+                phys_target_C = target_tensor
+                pred_K, pred_G = differentiable_vrh(phys_pred_C)
+                true_K, true_G = differentiable_vrh(phys_target_C)
+                if not (torch.isnan(pred_K) or torch.isnan(pred_G) or pred_G > 2000 or pred_K > 2000):
+                    phys_loss = F.l1_loss(pred_K, true_K) + F.l1_loss(pred_G, true_G)
+                    base_loss = base_loss + 0.005 * phys_loss
+                    
+                val_loss += base_loss.item()
+                val_batches += 1
+
+        avg_val_loss = val_loss / max(val_batches, 1)
+        elapsed = time.time() - epoch_start
+
+        # CosineAnnealingWarmRestarts steps per epoch
+        scheduler.step(epoch + 1)
+        current_lr = optimizer.param_groups[0]["lr"]
+
+        log(
+            f"Epoch {epoch+1:3d}/{args.epochs} | "
+            f"Train: {avg_train_loss:.6f} | Val: {avg_val_loss:.6f} | "
+            f"LR: {current_lr:.6f} | Time: {elapsed:.1f}s"
+        )
+
+        # â”€â”€ Checkpointing â”€â”€
+        is_best = avg_val_loss < best_val_loss
+        if is_best:
+            best_val_loss = avg_val_loss
+
+        checkpoint = {
+            "epoch": epoch + 1,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "train_loss": avg_train_loss,
+            "val_loss": avg_val_loss,
+            "best_val_loss": best_val_loss,
+        }
+
+        torch.save(checkpoint, os.path.join(args.save_dir, "checkpoint_equivariant.pth.tar"))
+        if is_best:
+            torch.save(checkpoint, os.path.join(args.save_dir, "model_best_equivariant.pth.tar"))
+            log(f"  *** New best model saved (val_loss: {best_val_loss:.6f}) ***")
+
+    log(f"\nTraining complete! Best val loss: {best_val_loss:.6f}")
+    log("Evaluating best model on validation samples...\n")
+
+    # â”€â”€ Final evaluation â”€â”€
+    best_ckpt = torch.load(os.path.join(args.save_dir, "model_best_equivariant.pth.tar"), map_location=device)
+    model.load_state_dict(best_ckpt["model_state_dict"])
+    evaluate(model, val_loader, device, target_mean, target_std, log)
+    log_file.close()
+
+
+def evaluate(model, val_loader, device, target_mean, target_std, log):
+    model.eval()
+    target_mean_np = target_mean.cpu().numpy()
+    target_std_np = target_std.cpu().numpy()
+
+    with torch.no_grad():
+        for i, batch in enumerate(val_loader):
+            if i >= 5:
+                break
+
+            mat_id = batch["mat_id"][0]
+            node_features = batch["node_features"][0].to(device)
+            edge_vec = batch["edge_vec"][0].to(device)
+            edge_index = batch["edge_index"][0].to(device)
+            target_tensor = batch["target_tensor"][0].cpu().numpy()
+
+            pred_standard = model(node_features, edge_vec, edge_index).cpu().numpy()
+            pred_C = pred_standard * target_std_np + target_mean_np
+
+            true_moduli = calculate_moduli(target_tensor)
+            pred_moduli = calculate_moduli(pred_C)
+
+            log(f"--- {mat_id} ---")
+            log(f"  TRUE:  Bulk={true_moduli.get('K_H', float('nan')):.1f}  Shear={true_moduli.get('G_H', float('nan')):.1f}  Stable={check_stability(target_tensor)}")
+            log(f"  PRED:  Bulk={pred_moduli.get('K_H', float('nan')):.1f}  Shear={pred_moduli.get('G_H', float('nan')):.1f}  Stable={check_stability(pred_C)}")
+            log(f"  MSE:   {np.mean((target_tensor - pred_C)**2):.4f}")
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    train(args)

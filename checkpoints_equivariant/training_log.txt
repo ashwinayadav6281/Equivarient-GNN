@@ -1,6 +1,148 @@
 Device: cpu
-Dataset size: 46913
-Train: 37530 | Val: 9383
+Dataset size: 39208
+Train: 31366 | Val: 7842
 Computing target statistics...
-Model parameters: 424,437
+Model parameters: 430,549
 Starting training for 100 epochs...
+
+Epoch   1/100 | Train: 0.729853 | Val: 0.758628 | LR: 0.000195 | Time: 972.4s
+  *** New best model saved (val_loss: 0.758628) ***
+Epoch   2/100 | Train: 0.672483 | Val: 0.752606 | LR: 0.000181 | Time: 936.3s
+  *** New best model saved (val_loss: 0.752606) ***
+Epoch   3/100 | Train: 0.655949 | Val: 0.745267 | LR: 0.000159 | Time: 889.9s
+  *** New best model saved (val_loss: 0.745267) ***
+Epoch   4/100 | Train: 0.645957 | Val: 0.720570 | LR: 0.000131 | Time: 887.1s
+  *** New best model saved (val_loss: 0.720570) ***
+Epoch   5/100 | Train: 0.637625 | Val: 0.715505 | LR: 0.000101 | Time: 890.4s
+  *** New best model saved (val_loss: 0.715505) ***
+Epoch   6/100 | Train: 0.631163 | Val: 0.715934 | LR: 0.000070 | Time: 915.0s
+Epoch   7/100 | Train: 0.625643 | Val: 0.709613 | LR: 0.000042 | Time: 969.1s
+  *** New best model saved (val_loss: 0.709613) ***
+Epoch   8/100 | Train: 0.621474 | Val: 0.708528 | LR: 0.000020 | Time: 965.6s
+  *** New best model saved (val_loss: 0.708528) ***
+Epoch   9/100 | Train: 0.618537 | Val: 0.707226 | LR: 0.000006 | Time: 970.8s
+  *** New best model saved (val_loss: 0.707226) ***
+Epoch  10/100 | Train: 0.616819 | Val: 0.706725 | LR: 0.000200 | Time: 969.7s
+  *** New best model saved (val_loss: 0.706725) ***
+Epoch  11/100 | Train: 0.631003 | Val: 0.712226 | LR: 0.000199 | Time: 972.4s
+Epoch  12/100 | Train: 0.627446 | Val: 0.708994 | LR: 0.000195 | Time: 969.5s
+Epoch  13/100 | Train: 0.622945 | Val: 0.713758 | LR: 0.000189 | Time: 974.2s
+Epoch  14/100 | Train: 0.618770 | Val: 0.705488 | LR: 0.000181 | Time: 973.5s
+  *** New best model saved (val_loss: 0.705488) ***
+Epoch  15/100 | Train: 0.614598 | Val: 0.706591 | LR: 0.000171 | Time: 963.5s
+Epoch  16/100 | Train: 0.611279 | Val: 0.699817 | LR: 0.000159 | Time: 985.8s
+  *** New best model saved (val_loss: 0.699817) ***
+Epoch  17/100 | Train: 0.607186 | Val: 0.701321 | LR: 0.000146 | Time: 968.8s
+Epoch  18/100 | Train: 0.603405 | Val: 0.700912 | LR: 0.000131 | Time: 1575.8s
+Epoch  19/100 | Train: 0.600330 | Val: 0.698368 | LR: 0.000116 | Time: 899.9s
+  *** New best model saved (val_loss: 0.698368) ***
+Epoch  20/100 | Train: 0.596677 | Val: 0.698255 | LR: 0.000101 | Time: 897.8s
+  *** New best model saved (val_loss: 0.698255) ***
+Epoch  21/100 | Train: 0.593807 | Val: 0.697044 | LR: 0.000085 | Time: 897.2s
+  *** New best model saved (val_loss: 0.697044) ***
+Epoch  22/100 | Train: 0.590821 | Val: 0.697060 | LR: 0.000070 | Time: 897.8s
+Epoch  23/100 | Train: 0.588163 | Val: 0.694986 | LR: 0.000055 | Time: 896.9s
+  *** New best model saved (val_loss: 0.694986) ***
+Epoch  24/100 | Train: 0.585696 | Val: 0.695351 | LR: 0.000042 | Time: 895.7s
+Epoch  25/100 | Train: 0.583507 | Val: 0.694757 | LR: 0.000030 | Time: 898.7s
+  *** New best model saved (val_loss: 0.694757) ***
+Epoch  26/100 | Train: 0.581752 | Val: 0.693792 | LR: 0.000020 | Time: 899.0s
+  *** New best model saved (val_loss: 0.693792) ***
+Epoch  27/100 | Train: 0.580153 | Val: 0.694134 | LR: 0.000012 | Time: 923.4s
+Epoch  28/100 | Train: 0.578866 | Val: 0.694127 | LR: 0.000006 | Time: 904.8s
+Epoch  29/100 | Train: 0.578071 | Val: 0.694238 | LR: 0.000002 | Time: 921.7s
+Epoch  30/100 | Train: 0.577542 | Val: 0.694026 | LR: 0.000200 | Time: 938.6s
+Epoch  31/100 | Train: 0.595083 | Val: 0.700372 | LR: 0.000200 | Time: 901.6s
+Epoch  32/100 | Train: 0.594671 | Val: 0.697086 | LR: 0.000199 | Time: 883.4s
+Epoch  33/100 | Train: 0.592664 | Val: 0.698423 | LR: 0.000197 | Time: 883.9s
+Epoch  34/100 | Train: 0.590775 | Val: 0.699453 | LR: 0.000195 | Time: 902.9s
+Epoch  35/100 | Train: 0.589008 | Val: 0.698001 | LR: 0.000192 | Time: 903.7s
+Epoch  36/100 | Train: 0.586949 | Val: 0.698820 | LR: 0.000189 | Time: 899.4s
+Epoch  37/100 | Train: 0.585201 | Val: 0.703726 | LR: 0.000185 | Time: 901.2s
+Epoch  38/100 | Train: 0.583110 | Val: 0.699817 | LR: 0.000181 | Time: 896.5s
+Epoch  39/100 | Train: 0.581262 | Val: 0.698376 | LR: 0.000176 | Time: 896.3s
+Epoch  40/100 | Train: 0.579182 | Val: 0.701668 | LR: 0.000171 | Time: 896.4s
+Epoch  41/100 | Train: 0.577441 | Val: 0.697195 | LR: 0.000165 | Time: 897.3s
+Epoch  42/100 | Train: 0.575797 | Val: 0.696842 | LR: 0.000159 | Time: 896.9s
+Epoch  43/100 | Train: 0.573526 | Val: 0.697254 | LR: 0.000152 | Time: 895.7s
+Epoch  44/100 | Train: 0.572017 | Val: 0.698007 | LR: 0.000146 | Time: 900.3s
+Epoch  45/100 | Train: 0.570042 | Val: 0.698478 | LR: 0.000139 | Time: 898.2s
+Epoch  46/100 | Train: 0.568393 | Val: 0.695503 | LR: 0.000131 | Time: 897.3s
+Epoch  47/100 | Train: 0.566471 | Val: 0.698134 | LR: 0.000124 | Time: 894.8s
+Epoch  48/100 | Train: 0.564935 | Val: 0.696577 | LR: 0.000116 | Time: 895.7s
+Epoch  49/100 | Train: 0.563340 | Val: 0.695779 | LR: 0.000108 | Time: 895.8s
+Epoch  50/100 | Train: 0.561450 | Val: 0.695688 | LR: 0.000101 | Time: 895.0s
+Epoch  51/100 | Train: 0.559869 | Val: 0.696280 | LR: 0.000093 | Time: 895.3s
+Epoch  52/100 | Train: 0.558303 | Val: 0.694869 | LR: 0.000085 | Time: 895.4s
+Epoch  53/100 | Train: 0.556838 | Val: 0.694030 | LR: 0.000077 | Time: 895.6s
+Epoch  54/100 | Train: 0.555388 | Val: 0.695015 | LR: 0.000070 | Time: 894.6s
+Epoch  55/100 | Train: 0.553868 | Val: 0.695161 | LR: 0.000062 | Time: 893.8s
+Epoch  56/100 | Train: 0.552553 | Val: 0.694929 | LR: 0.000055 | Time: 895.6s
+Epoch  57/100 | Train: 0.551267 | Val: 0.694811 | LR: 0.000049 | Time: 895.9s
+Epoch  58/100 | Train: 0.549982 | Val: 0.694914 | LR: 0.000042 | Time: 895.6s
+Epoch  59/100 | Train: 0.548895 | Val: 0.694426 | LR: 0.000036 | Time: 894.1s
+Epoch  60/100 | Train: 0.547739 | Val: 0.694272 | LR: 0.000030 | Time: 895.6s
+Epoch  61/100 | Train: 0.546737 | Val: 0.694499 | LR: 0.000025 | Time: 895.9s
+Epoch  62/100 | Train: 0.545838 | Val: 0.694359 | LR: 0.000020 | Time: 898.2s
+Epoch  63/100 | Train: 0.545004 | Val: 0.694136 | LR: 0.000016 | Time: 895.3s
+Epoch  64/100 | Train: 0.544299 | Val: 0.694814 | LR: 0.000012 | Time: 894.2s
+Epoch  65/100 | Train: 0.543697 | Val: 0.694573 | LR: 0.000009 | Time: 893.3s
+Epoch  66/100 | Train: 0.543162 | Val: 0.694376 | LR: 0.000006 | Time: 895.2s
+Epoch  67/100 | Train: 0.542741 | Val: 0.694344 | LR: 0.000004 | Time: 895.5s
+Epoch  68/100 | Train: 0.542423 | Val: 0.694419 | LR: 0.000002 | Time: 895.2s
+Epoch  69/100 | Train: 0.542174 | Val: 0.694430 | LR: 0.000001 | Time: 894.4s
+Epoch  70/100 | Train: 0.542018 | Val: 0.694379 | LR: 0.000200 | Time: 894.7s
+Epoch  71/100 | Train: 0.562773 | Val: 0.700826 | LR: 0.000200 | Time: 895.4s
+Epoch  72/100 | Train: 0.564430 | Val: 0.699282 | LR: 0.000200 | Time: 897.1s
+Epoch  73/100 | Train: 0.563390 | Val: 0.698446 | LR: 0.000199 | Time: 894.4s
+Epoch  74/100 | Train: 0.562652 | Val: 0.700245 | LR: 0.000199 | Time: 896.2s
+Epoch  75/100 | Train: 0.562246 | Val: 0.699659 | LR: 0.000198 | Time: 894.9s
+Epoch  76/100 | Train: 0.560807 | Val: 0.698043 | LR: 0.000197 | Time: 894.9s
+Epoch  77/100 | Train: 0.559686 | Val: 0.698836 | LR: 0.000196 | Time: 896.0s
+Epoch  78/100 | Train: 0.558721 | Val: 0.699572 | LR: 0.000195 | Time: 893.3s
+Epoch  79/100 | Train: 0.557887 | Val: 0.698247 | LR: 0.000194 | Time: 897.8s
+Epoch  80/100 | Train: 0.556902 | Val: 0.697486 | LR: 0.000192 | Time: 895.1s
+Epoch  81/100 | Train: 0.555706 | Val: 0.703720 | LR: 0.000191 | Time: 889.5s
+Epoch  82/100 | Train: 0.554604 | Val: 0.699810 | LR: 0.000189 | Time: 891.5s
+Epoch  83/100 | Train: 0.553992 | Val: 0.698213 | LR: 0.000187 | Time: 891.4s
+Epoch  84/100 | Train: 0.552836 | Val: 0.699646 | LR: 0.000185 | Time: 893.5s
+Epoch  85/100 | Train: 0.551758 | Val: 0.698628 | LR: 0.000183 | Time: 895.3s
+Epoch  86/100 | Train: 0.550930 | Val: 0.701248 | LR: 0.000181 | Time: 891.9s
+Epoch  87/100 | Train: 0.549857 | Val: 0.699226 | LR: 0.000179 | Time: 894.6s
+Epoch  88/100 | Train: 0.548838 | Val: 0.699260 | LR: 0.000176 | Time: 894.6s
+Epoch  89/100 | Train: 0.547829 | Val: 0.699298 | LR: 0.000174 | Time: 893.5s
+Epoch  90/100 | Train: 0.546892 | Val: 0.699510 | LR: 0.000171 | Time: 894.1s
+Epoch  91/100 | Train: 0.545805 | Val: 0.701719 | LR: 0.000168 | Time: 893.8s
+Epoch  92/100 | Train: 0.544585 | Val: 0.700367 | LR: 0.000165 | Time: 895.1s
+Epoch  93/100 | Train: 0.544210 | Val: 0.699822 | LR: 0.000162 | Time: 894.9s
+Epoch  94/100 | Train: 0.542925 | Val: 0.699878 | LR: 0.000159 | Time: 894.0s
+Epoch  95/100 | Train: 0.541678 | Val: 0.700271 | LR: 0.000156 | Time: 892.3s
+Epoch  96/100 | Train: 0.540955 | Val: 0.700897 | LR: 0.000152 | Time: 896.4s
+Epoch  97/100 | Train: 0.540063 | Val: 0.699485 | LR: 0.000149 | Time: 894.2s
+Epoch  98/100 | Train: 0.538980 | Val: 0.700203 | LR: 0.000146 | Time: 894.7s
+Epoch  99/100 | Train: 0.538067 | Val: 0.698655 | LR: 0.000142 | Time: 894.3s
+Epoch 100/100 | Train: 0.537288 | Val: 0.700738 | LR: 0.000139 | Time: 892.8s
+
+Training complete! Best val loss: 0.693792
+Evaluating best model on validation samples...
+
+--- JVASP-192736 ---
+  TRUE:  Bulk=192.3  Shear=86.9  Stable=True
+  PRED:  Bulk=173.0  Shear=73.8  Stable=True
+  MSE:   325.0426
+--- mp-aaaabfpu ---
+  TRUE:  Bulk=113.0  Shear=48.0  Stable=True
+  PRED:  Bulk=122.0  Shear=27.3  Stable=True
+  MSE:   199.1795
+--- JVASP-192777 ---
+  TRUE:  Bulk=129.8  Shear=44.9  Stable=True
+  PRED:  Bulk=118.2  Shear=38.9  Stable=True
+  MSE:   55.6246
+--- mp-aaabxfhm ---
+  TRUE:  Bulk=211.3  Shear=86.1  Stable=True
+  PRED:  Bulk=222.7  Shear=58.9  Stable=True
+  MSE:   261.6834
+--- mp-aaaabiud ---
+  TRUE:  Bulk=11.1  Shear=6.1  Stable=True
+  PRED:  Bulk=18.1  Shear=8.5  Stable=True
+  MSE:   15.7939
