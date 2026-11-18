@@ -247,32 +247,28 @@ We benchmarked the trained E3NN model against the established invariant baseline
 
 Table~\ref{tab:moduli_comparison} presents the quantitative comparison evaluated across both the mechanically stable subset ($N = 10,960$) and the complete dataset ($N = 12,129$).
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
-\caption{Quantitative comparison between direct invariant CGCNN and tensor-derived E3NN across mechanically stable crystals ($N = 10,960$) and the complete overlapping set ($N = 12,129$).}
+\caption{Quantitative benchmark comparison between direct invariant CGCNN and tensor-derived E3NN across mechanically stable crystals ($N = 10,960$) and the complete overlapping set ($N = 12,129$). All error metrics (MAE, MedAE, RMSE) are reported in GPa.}
 \label{tab:moduli_comparison}
 \begin{ruledtabular}
-\begin{tabular}{lcccc}
-Model & MAE (GPa) & MedAE (GPa) & RMSE (GPa) & $R^2$ \\
+\begin{tabular}{llcccc}
+Evaluation Target & Model Architecture & MAE (GPa) & MedAE (GPa) & RMSE (GPa) & $R^2$ \\
 \hline
-\multicolumn{5}{l}{\textbf{Bulk Modulus ($K_H$) -- Mechanically Stable ($N = 10,960$)}} \\
-CGCNN (Direct) & 20.34 & 13.94 & 29.63 & 0.8217 \\
-\textbf{E3NN (Tensor $\rightarrow$ VRH)} & \textbf{6.93} & \textbf{4.28} & \textbf{12.32} & \textbf{0.9692} \\
+\textbf{Bulk Modulus ($K_H$)} & CGCNN (Direct Invariant MLP) & 20.34 & 13.94 & 29.63 & 0.8217 \\
+\textit{Mechanically Stable ($N = 10,960$)} & \textbf{E3NN (Equivariant Tensor $\rightarrow$ VRH)} & \textbf{6.93} & \textbf{4.28} & \textbf{12.32} & \textbf{0.9692} \\
 \hline
-\multicolumn{5}{l}{\textbf{Shear Modulus ($G_H$) -- Mechanically Stable ($N = 10,960$)}} \\
-CGCNN (Direct) & 8.84 & 6.22 & 12.65 & 0.8880 \\
-\textbf{E3NN (Tensor $\rightarrow$ VRH)} & \textbf{7.51} & \textbf{4.68} & \textbf{11.75} & \textbf{0.9033} \\
+\textbf{Shear Modulus ($G_H$)} & CGCNN (Direct Invariant MLP) & 8.84 & 6.22 & 12.65 & 0.8880 \\
+\textit{Mechanically Stable ($N = 10,960$)} & \textbf{E3NN (Equivariant Tensor $\rightarrow$ VRH)} & \textbf{7.51} & \textbf{4.68} & \textbf{11.75} & \textbf{0.9033} \\
 \hline
-\multicolumn{5}{l}{\textbf{Bulk Modulus ($K_H$) -- Full Dataset ($N = 12,129$)}} \\
-CGCNN (Direct) & 21.16 & 14.46 & 30.97 & 0.8048 \\
-\textbf{E3NN (Tensor $\rightarrow$ VRH)} & \textbf{7.68} & \textbf{4.43} & \textbf{14.27} & \textbf{0.9586} \\
+\textbf{Bulk Modulus ($K_H$)} & CGCNN (Direct Invariant MLP) & 21.16 & 14.46 & 30.97 & 0.8048 \\
+\textit{Full Dataset ($N = 12,129$)} & \textbf{E3NN (Equivariant Tensor $\rightarrow$ VRH)} & \textbf{7.68} & \textbf{4.43} & \textbf{14.27} & \textbf{0.9586} \\
 \hline
-\multicolumn{5}{l}{\textbf{Shear Modulus ($G_H$) -- Full Dataset ($N = 12,129$)}} \\
-CGCNN (Direct) & 10.10 & 6.65 & 15.50 & 0.8332 \\
-\textbf{E3NN (Tensor $\rightarrow$ VRH)} & \textbf{8.61} & \textbf{5.03} & \textbf{14.11} & \textbf{0.8617} \\
+\textbf{Shear Modulus ($G_H$)} & CGCNN (Direct Invariant MLP) & 10.10 & 6.65 & 15.50 & 0.8332 \\
+\textit{Full Dataset ($N = 12,129$)} & \textbf{E3NN (Equivariant Tensor $\rightarrow$ VRH)} & \textbf{8.61} & \textbf{5.03} & \textbf{14.11} & \textbf{0.8617} \\
 \end{tabular}
 \end{ruledtabular}
-\end{table}
+\end{table*}
 
 \begin{figure}[t]
 \centering
@@ -322,6 +318,8 @@ To demonstrate practical screening utility, we executed full-dataset inference a
 
 \begin{table}[h]
 \centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \caption{Mechanical summary of classified crystalline regimes across 39,223 Materials Project and JARVIS crystals.}
 \label{tab:hard_soft_summary}
 \begin{ruledtabular}
